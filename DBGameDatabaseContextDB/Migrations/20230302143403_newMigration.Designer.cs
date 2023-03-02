@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DBGameDatabaseContextDB.Migrations
 {
     [DbContext(typeof(GameDatabaseContext))]
-    [Migration("20230215123845_newMigration")]
+    [Migration("20230302143403_newMigration")]
     partial class newMigration
     {
         /// <inheritdoc />
@@ -33,9 +33,8 @@ namespace DBGameDatabaseContextDB.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<byte[]>("CoverImage")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                    b.Property<int>("CoverImageId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -61,6 +60,8 @@ namespace DBGameDatabaseContextDB.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CoverImageId");
+
                     b.ToTable("Games");
                 });
 
@@ -72,13 +73,29 @@ namespace DBGameDatabaseContextDB.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<byte[]>("CoverImage")
+                    b.Property<byte[]>("Bytes")
                         .IsRequired()
                         .HasColumnType("varbinary(max)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Images");
+                });
+
+            modelBuilder.Entity("DBGameDatabaseContextDB.Game", b =>
+                {
+                    b.HasOne("DBGameDatabaseContextDB.Image", "CoverImage")
+                        .WithMany("UsedWithGames")
+                        .HasForeignKey("CoverImageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CoverImage");
+                });
+
+            modelBuilder.Entity("DBGameDatabaseContextDB.Image", b =>
+                {
+                    b.Navigation("UsedWithGames");
                 });
 #pragma warning restore 612, 618
         }

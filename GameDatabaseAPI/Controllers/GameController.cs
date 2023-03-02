@@ -1,8 +1,13 @@
 ﻿using DBGameDatabaseContextDB;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System.Buffers.Text;
+using System.Text;
 using System.Text.Json;
+using static System.Net.Mime.MediaTypeNames;
+using Image = DBGameDatabaseContextDB.Image;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -19,18 +24,31 @@ namespace GameDatabaseAPI.Controllers
             _db = db;
         }
 
-
         //Load top games
         [HttpGet("loadTopGames")]
-        public IEnumerable<Game> Get()
+        public IEnumerable<TopGameDto> GetTopGames()
         {
-            return _db.Games;
+            //Create TopGameDto object and add data + cover image as Base64String
+            var games = from g in _db.Games
+                        select new TopGameDto()
+                        {
+                            Id = g.Id,
+                            Name = g.Name,
+                            Description = g.Description,
+                            Genre = g.Genre,
+                            Platform = g.Platform,
+                            ReleaseDate = g.ReleaseDate,
+                            ExpectedRuntime = g.ExpectedRuntime,
+                            Base64String = Convert.ToBase64String(g.CoverImage.Bytes, 0, g.CoverImage.Bytes.Length, Base64FormattingOptions.None)
+                        };
+            return games;
         }
 
         //Add game
         [HttpPost("addGame")]
-        public bool addGamePOST([FromBody] JsonElement userinput)
+        public bool AddGamePOST([FromBody] JsonElement userinput)
         {
+            //Create new game instance
             Game newGame = new Game();
             newGame.Name = userinput.GetProperty("name").ToString();
             newGame.Description = userinput.GetProperty("description").ToString();
@@ -39,53 +57,38 @@ namespace GameDatabaseAPI.Controllers
             newGame.ReleaseDate = DateTime.Parse(userinput.GetProperty("releasedate").ToString());
             newGame.ExpectedRuntime = Int32.Parse(userinput.GetProperty("runtime").ToString());
 
+            //Check if header code if present on image base64string. If so, remove it and convert to base64String.
+            byte[] bytes;
+            if (userinput.GetProperty("imageUrl").ToString().Contains(','))
+            {
+                string imageUrltoString = userinput.GetProperty("imageUrl").ToString();
+                string validBase64String = imageUrltoString.Substring(imageUrltoString.LastIndexOf(',') + 1);
+                bytes = Convert.FromBase64String(validBase64String);
+            } else
+            {
+                bytes = Convert.FromBase64String(userinput.GetProperty("imageUrl").ToString());
+            }
 
-            string base64string = userinput.GetProperty("imageUrl").ToString();
-            System.Diagnostics.Debug.WriteLine(base64string);
-            System.Diagnostics.Debug.WriteLine(userinput.GetProperty("imageUrl").ToString());
+            //Check if image already exists. If so, add existing image instead of creating a new one.
+            var result = from i in _db.Images
+                         where i.Bytes == bytes
+                         select i;
+            if (result.Count() != 0)
+            {
+                newGame.CoverImage = result.FirstOrDefault();
+            } else
+            {
+                Image newImage = new Image();
+                newImage.Bytes = bytes;
+                newGame.CoverImage = newImage;
+                _db.Images.Add(newImage);
+            }
 
-            Image newImage = new Image();
-            byte[] bytes = Convert.FromBase64String(userinput.GetProperty("imageUrl").ToString());
-            newImage.CoverImage = bytes;
-            newGame.CoverImage = bytes;
-            System.Diagnostics.Debug.WriteLine("output:");
-            System.Diagnostics.Debug.WriteLine(bytes);
-
+            //Save changes to the database
             _db.Games.Add(newGame);
-            _db.Images.Add(newImage);
             _db.SaveChanges();
             return true;
         }
 
-
-
-
-
-
-
-
-
-
-
-        // GET api/<GameController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
-        {
-            return "value";
-        }
-
-
-
-        // PUT api/<GameController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<GameController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
     }
 }
