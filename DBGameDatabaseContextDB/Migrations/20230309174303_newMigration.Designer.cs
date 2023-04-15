@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DBGameDatabaseContextDB.Migrations
 {
     [DbContext(typeof(GameDatabaseContext))]
-    [Migration("20230302143403_newMigration")]
+    [Migration("20230309174303_newMigration")]
     partial class newMigration
     {
         /// <inheritdoc />
@@ -82,6 +82,39 @@ namespace DBGameDatabaseContextDB.Migrations
                     b.ToTable("Images");
                 });
 
+            modelBuilder.Entity("DBGameDatabaseContextDB.News", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CoverImageId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Excerpt")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("PostDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoverImageId");
+
+                    b.ToTable("NewsItems");
+                });
+
             modelBuilder.Entity("DBGameDatabaseContextDB.Game", b =>
                 {
                     b.HasOne("DBGameDatabaseContextDB.Image", "CoverImage")
@@ -93,9 +126,22 @@ namespace DBGameDatabaseContextDB.Migrations
                     b.Navigation("CoverImage");
                 });
 
+            modelBuilder.Entity("DBGameDatabaseContextDB.News", b =>
+                {
+                    b.HasOne("DBGameDatabaseContextDB.Image", "CoverImage")
+                        .WithMany("UsedWithNews")
+                        .HasForeignKey("CoverImageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CoverImage");
+                });
+
             modelBuilder.Entity("DBGameDatabaseContextDB.Image", b =>
                 {
                     b.Navigation("UsedWithGames");
+
+                    b.Navigation("UsedWithNews");
                 });
 #pragma warning restore 612, 618
         }

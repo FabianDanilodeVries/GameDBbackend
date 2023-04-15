@@ -12,5 +12,6 @@ namespace DBGameDatabaseContextDB
         public GameDatabaseContext(DbContextOptions options) : base(options) {}
         public DbSet<Game> Games { get; set; }
         public DbSet<Image> Images { get; set; }
+        public DbSet<News> NewsItems { get; set; }
     }
 }

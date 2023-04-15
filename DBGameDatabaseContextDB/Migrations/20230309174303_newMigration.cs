@@ -49,9 +49,37 @@ namespace DBGameDatabaseContextDB.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "NewsItems",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Excerpt = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Body = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PostDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CoverImageId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_NewsItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_NewsItems_Images_CoverImageId",
+                        column: x => x.CoverImageId,
+                        principalTable: "Images",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Games_CoverImageId",
                 table: "Games",
+                column: "CoverImageId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_NewsItems_CoverImageId",
+                table: "NewsItems",
                 column: "CoverImageId");
         }
 
@@ -60,6 +88,9 @@ namespace DBGameDatabaseContextDB.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Games");
+
+            migrationBuilder.DropTable(
+                name: "NewsItems");
 
             migrationBuilder.DropTable(
                 name: "Images");

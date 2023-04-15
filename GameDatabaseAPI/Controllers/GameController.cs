@@ -29,18 +29,20 @@ namespace GameDatabaseAPI.Controllers
         public IEnumerable<TopGameDto> GetTopGames()
         {
             //Create TopGameDto object and add data + cover image as Base64String
-            var games = from g in _db.Games
-                        select new TopGameDto()
-                        {
-                            Id = g.Id,
-                            Name = g.Name,
-                            Description = g.Description,
-                            Genre = g.Genre,
-                            Platform = g.Platform,
-                            ReleaseDate = g.ReleaseDate,
-                            ExpectedRuntime = g.ExpectedRuntime,
-                            Base64String = Convert.ToBase64String(g.CoverImage.Bytes, 0, g.CoverImage.Bytes.Length, Base64FormattingOptions.None)
-                        };
+            var games = _db.Games.Select(g => new TopGameDto()
+            {
+                Id = g.Id,
+                Name = g.Name,
+                Description = g.Description,
+                Genre = g.Genre,
+                Platform = g.Platform,
+                ReleaseDate = g.ReleaseDate,
+                ExpectedRuntime = g.ExpectedRuntime,
+                Base64String = Convert.ToBase64String(g.CoverImage.Bytes, 0, g.CoverImage.Bytes.Length, Base64FormattingOptions.None)
+            })
+            .Take(10) //Select top 10 results
+            .ToList(); //Turn results into a list
+            //.OrderByDescending(g => DateTime.Parse(g.PostDate)); //Order by rating //needs implementing
             return games;
         }
 

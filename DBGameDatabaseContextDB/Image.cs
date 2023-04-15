@@ -9,9 +9,10 @@ namespace DBGameDatabaseContextDB
 {
     public class Image
     {
-        public int Id { get; set; }
+        public int Id { get; }
         [Required]
         public byte[] Bytes { get; set; }
         public List<Game> UsedWithGames { get; set; }
+        public List<News> UsedWithNews { get; set; }
     }
 }

@@ -12,7 +12,7 @@ namespace DBGameDatabaseContextDB
 {
     public class Game
     {
-        public int Id { get; set; }
+        public int Id { get; }
         [Required]
         public string Name { get; set; }
         [Required]
@@ -23,8 +23,8 @@ namespace DBGameDatabaseContextDB
         public string Platform { get; set; }
         [Required]
         public DateTime ReleaseDate { get; set; }
-        [Required]
         public int ExpectedRuntime { get; set; }
+        [Required]
         public Image CoverImage { get; set; }
     }
 }
